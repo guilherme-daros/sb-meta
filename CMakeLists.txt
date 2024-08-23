@@ -13,7 +13,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 add_subdirectory(headers)
 add_subdirectory(apps)
 
-#add_subdirectory(src)
+add_subdirectory(src)
 
 if(FRAMEWORK STREQUAL "gtest")
     add_subdirectory(test/)
