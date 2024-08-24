@@ -1,1 +1,3 @@
-add_subdirectory(examples)
+if(BUILD_EXAMPLES STREQUAL "ON")
+  add_subdirectory(examples)
+endif()

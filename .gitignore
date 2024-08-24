@@ -5,4 +5,5 @@
 .git
 
 # Output
-bin
+.bin
+output
