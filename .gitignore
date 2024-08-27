@@ -1,5 +1,6 @@
 # Build files
 .build
+.cache
 
 # Git stuff
 .git

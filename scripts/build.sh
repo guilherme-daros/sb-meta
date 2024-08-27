@@ -19,10 +19,14 @@ show_help() {
 case "$1" in
   -c | --clean)
     echo "Deleting build folders"
-    rm -rf .build
+    rm -rf .build .bin .cache output
     ;;
   --gtest)
     cmake -S . -G "Ninja" -B .build -DFRAMEWORK=gtest -DCMAKE_EXPORT_COMPILE_COMMANDS=YES
+    cmake --build .build
+    ;;
+   -e | --examples)
+    cmake -S . -G "Ninja" -B .build -DBUILD_EXAMPLES=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=YES
     cmake --build .build
     ;;
   -h | --help)
