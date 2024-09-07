@@ -1,3 +1,6 @@
+#pragma once
+
+namespace infra {
 template <class T>
 class Singleton {
  public:
@@ -17,5 +20,6 @@ class Singleton {
     _T() : T() {}
   };
 
-  static T *instance_ = nullptr;
+  static inline T *instance_ = nullptr;
 };
+}  // namespace infra

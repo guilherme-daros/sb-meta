@@ -1,3 +1,5 @@
+#pragma once
+
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
@@ -23,7 +25,17 @@ class Channel {
     cv_empty_.notify_one();
   }
 
-  template <class Rep, class Period>
+  friend auto operator<<(Channel& ch, T value) -> Channel& {
+    ch.send(value);
+    return ch;
+  }
+
+  friend auto operator>>(Channel& ch, std::optional<T>& value) -> Channel& {
+    value = ch.receive();
+    return ch;
+  }
+
+  template <typename Rep, typename Period>
   auto receive(const std::chrono::duration<Rep, Period>& timeout) -> std::optional<T> {
     std::unique_lock lock(mtx_);
 
@@ -32,7 +44,7 @@ class Channel {
     if (!received || (buffer_.empty() && closed_)) return std::nullopt;
 
     auto value = buffer_.pop();
-    cv_full_.notify_one();  // Notify one waiting sender that there's space in the buffer
+    cv_full_.notify_one();
     return value;
   }
 
