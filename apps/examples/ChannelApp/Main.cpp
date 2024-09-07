@@ -1,34 +1,36 @@
+#include <future>
 #include <iostream>
 #include <thread>
 #include "infra/Channel.hpp"
 
-void worker(int id, infra::Channel<int> &ch) {
-  std::cout << "Worker starting" << std::endl;
-
-  using namespace std::chrono_literals;
-
-  while (true) {
-    std::cout << "Worker waiting for message" << std::endl;
-    auto value = ch.receive(1s);
-
-    if (value.has_value()) {
-      std::cout << "Worker received message" << std::endl;
-    } else {
-      std::cout << "Worker timeout" << std::endl;
-      break;
-    }
-  }
-}
+using namespace std::chrono_literals;
 
 int main() {
+  auto running = std::atomic_bool(true);
   auto ch = infra::Channel<int>();
-  auto t1 = std::thread(worker, 1, std::ref(ch));
+
+  auto runnable = [&running, &ch] {
+    std::cout << "ThreadId: " << std::this_thread::get_id() << std::endl;
+
+    while (running) {
+      std::cout << "Worker waiting for message" << std::endl;
+      auto value = ch.receive();
+
+      if (value.has_value()) {
+        std::this_thread::sleep_for(1s);
+        std::cout << "Worker received message" << std::endl;
+      } else {
+        break;
+      }
+    }
+  };
+
+  auto th = std::async(std::launch::async, runnable);
 
   for (int i = 1; i <= 3; ++i) ch.send(i);
 
-  t1.join();
-
-  ch.close();
+  std::this_thread::sleep_for(1s);
+  running = false;
 
   return 0;
 }
