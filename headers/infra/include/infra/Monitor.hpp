@@ -17,8 +17,8 @@ class Monitor {
   Monitor(Dr interval, Fn func) : interval_(interval), func_(func) {}
 
   virtual ~Monitor() {
+    Stop();
     future_.wait();
-    // Stop();
   };
 
   auto SetRunnable(Fn func) { func_ = func; }
@@ -27,23 +27,24 @@ class Monitor {
     if (monitoring_) return;
 
     monitoring_ = true;
-    future_ = std::async(std::launch::async, [this] { DoMonitor(); });
+    future_ = std::async(std::launch::async, [this] { Run(); });
   }
 
   auto Stop() -> void { monitoring_ = false; }
 
-  auto DoMonitor() -> void {
+  auto Run() -> bool {
     while (monitoring_) {
       auto next_run = std::chrono::steady_clock::now() + interval_;
       func_();
       std::this_thread::sleep_until(next_run);
     }
+    return true;
   }
 
  private:
-  std::chrono::duration<double> interval_;
   std::atomic_bool monitoring_ = false;
-  std::function<void()> func_;
   std::future<void> future_;
+  Dr interval_;
+  Fn func_;
 };
 }  // namespace infra
