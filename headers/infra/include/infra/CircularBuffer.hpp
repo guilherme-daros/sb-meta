@@ -31,6 +31,8 @@ class CircularBuffer {
     return value;
   }
 
+  auto size() const -> size_t { return count_; }
+
   auto empty() const -> size_t { return count_ == 0; }
 
   auto full() const -> size_t { return count_ == Size; }
