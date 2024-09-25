@@ -1,11 +1,26 @@
-#include "infra/Log.hpp"
+#include <unistd.h>
+#include <cmath>
+#include <cstdlib>
+#include <iomanip>
+#include <ios>
+#include <ostream>
+#include "infra/Logger.hpp"
+
+namespace {
+using Main = logger::Logger<logger::Adaptor, "main">;
+using Test = logger::Logger<logger::Adaptor, "test">;
+}  // namespace
 
 int main(int argc, char *argv[]) {
-  Log::reporting_level(Log::Level::INFO);
+  Main::sDebug() << "Help" << std::setw(10) << std::right << "Romero" << std::endl;
+  Main::sInfo() << "Help" << std::setw(10) << std::right << "Romero" << std::endl;
+  Main::sWarning() << "Help" << std::setw(10) << std::right << "Romero" << std::endl;
+  Main::sError() << "Help" << std::setw(10) << std::right << "Romero" << std::endl;
 
-  Stream_ERROR("Main") << "Help" << std::endl;
-  Stream_WARNING("Main") << "Help" << std::endl;
-  Stream_INFO("Main") << "Help" << std::endl;
-  Stream_DEBUG("Main") << "Help" << std::endl;
+  Test::sDebug() << "Help" << std::setw(10) << std::right << "Romero" << std::endl;
+  Test::sInfo() << "Help" << std::setw(10) << std::right << "Romero" << std::endl;
+  Test::sWarning() << "Help" << std::setw(10) << std::right << "Romero" << std::endl;
+  Test::sError() << "Help" << std::setw(10) << std::right << "Romero" << std::endl;
+
   return 0;
 }

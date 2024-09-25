@@ -26,7 +26,7 @@ case "$1" in
     cmake --build .build
     ;;
    -e | --examples)
-    cmake -S . -G "Ninja" -B .build -DBUILD_EXAMPLES=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=YES
+    cmake -S . -G "Ninja" -B .build -DBUILD_EXAMPLES=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=YES -DCMAKE_BUILD_TYPE=Debug
     cmake --build .build
     ;;
   -h | --help)
