@@ -6,7 +6,8 @@
 #include <mutex>
 #include <thread>
 #include <utility>
-#include "infra/CircularBuffer.hpp"
+
+#include "CircularBuffer.hpp"
 
 namespace infra {
 template <size_t Size>

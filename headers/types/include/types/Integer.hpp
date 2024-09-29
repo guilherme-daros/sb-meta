@@ -1,7 +1,10 @@
+#pragma once
+
 #include <cstdint>
 #include <limits>
 #include <ostream>
 
+namespace types {
 static constexpr uint64_t bitwidth_calc_(uint64_t d) { return d < 2 ? d : 1 + bitwidth_calc_(d >> 1); }
 
 template <typename T, T M__ = std::numeric_limits<T>::max(), T m__ = std::numeric_limits<T>::min()>
@@ -45,3 +48,4 @@ class Integer {
   static constexpr T max_ = T{M__};
   static constexpr T min_ = T{m__};
 };
+}  // namespace types

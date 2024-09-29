@@ -9,7 +9,7 @@
 #include <thread>
 #include <unordered_map>
 
-#include "infra/StringLiteral.hpp"
+#include "types/StringLiteral.hpp"
 
 namespace logger {
 

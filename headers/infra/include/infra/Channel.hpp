@@ -5,7 +5,7 @@
 #include <mutex>
 #include <optional>
 
-#include "infra/CircularBuffer.hpp"
+#include "CircularBuffer.hpp"
 
 namespace infra {
 

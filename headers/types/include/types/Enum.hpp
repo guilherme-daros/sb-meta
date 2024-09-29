@@ -1,4 +1,7 @@
-#include "infra/Integer.hpp"
+#pragma once
+
+#include "Integer.hpp"
+namespace types {
 
 template <typename T, T M__, T m__>
 class Enum : public Integer<uint32_t, static_cast<uint32_t>(M__), static_cast<uint32_t>(m__)> {
@@ -16,3 +19,5 @@ class Enum : public Integer<uint32_t, static_cast<uint32_t>(M__), static_cast<ui
   static constexpr T max() { return M__; }
   static constexpr T min() { return m__; }
 };
+
+}  // namespace types
