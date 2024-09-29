@@ -36,6 +36,7 @@ inline void Uptime() {
 }
 
 }  // namespace utils
+
 namespace output {
 class Console {
  public:
@@ -46,16 +47,17 @@ class Console {
 };
 }  // namespace output
 
+enum class Level { None, Error, Warning, Info, Debug };
+
 class Base {
  public:
-  enum class Level { None, Error, Warning, Info, Debug };
-
  protected:
   static auto to_string(Level level) -> std::string& {
     static auto buffer = std::unordered_map<Level, std::string>{
         {Level::None, "None"}, {Level::Debug, "D"}, {Level::Info, "I"}, {Level::Warning, "W"}, {Level::Error, "E"}};
     return buffer[(level >= Level::None && level <= Level::Debug) ? level : static_cast<Level>(0)];
   }
+
   static auto to_color(Level level) -> std::string& {
     static auto buffer = std::unordered_map<Level, std::string>{{Level::None, "None"},
                                                                 {Level::Debug, "\033[1;39;44m"},
@@ -89,6 +91,12 @@ class Logger : public Base {
 
     // This deals with iomanip function templates
     void operator<<(std::ostream& (*func)(std::ostream&)) {
+      if (logging_level < level_) {
+        os.str("");
+        os.clear();
+        return;
+      }
+
       constexpr auto default_light = std::string_view{"\033[0;39;49m"};
       std::ostringstream context;
 
@@ -138,6 +146,11 @@ class Logger : public Base {
           const std::source_location file_src = std::source_location::current())
         : sLog(Level::Error, Adaptor::output_stream(), id, file_src) {}
   };
+
+  static Level logging_level;
 };
+
+template <typename Adaptor, StringLiteral domain>
+Level Logger<Adaptor, domain>::logging_level = Level::Debug;
 
 }  // namespace logger

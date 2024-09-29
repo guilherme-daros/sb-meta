@@ -6,9 +6,11 @@
 
 namespace {
 using Main = logger::Logger<logger::output::Console, "main">;
-}  // namespace
+}
 
 int main(int argc, char *argv[]) {
+  Main::logging_level = logger::Level::Error;
+
   Main::Debug() << "Help" << std::endl;
   Main::Info() << "Help" << std::endl;
   Main::Warning() << "Help" << std::endl;
