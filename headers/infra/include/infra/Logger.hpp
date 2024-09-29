@@ -1,4 +1,3 @@
-#include <fmt/color.h>
 #include <filesystem>
 #include <iomanip>
 #include <ios>
@@ -28,27 +27,24 @@ inline auto get_pos(const std::string_view path, const uint64_t line) -> std::st
 
 inline void Uptime() {
   static auto start = std::chrono::steady_clock::now();
-
   std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 1000));
-
   auto now = std::chrono::steady_clock::now();
-
   auto uptime_s = std::chrono::duration_cast<std::chrono::seconds>(now - start);
   auto uptime_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
-
   std::cout << "[" << std::setw(5) << std::right << uptime_s.count() << "." << std::setw(3) << std::setfill('0')
             << (uptime_ms.count() % 1000) << "]" << std::setfill(' ') << std::endl;
 }
 
 }  // namespace utils
-
-class Adaptor {
+namespace output {
+class Console {
  public:
   static auto output_stream() -> std::ostream& {
     static auto& pStream = std::cout;
     return pStream;
   }
 };
+}  // namespace output
 
 class Base {
  public:
@@ -75,9 +71,6 @@ class Base {
 template <typename Adaptor, StringLiteral domain>
 class Logger : public Base {
  public:
-  Logger() {}
-  ~Logger() {}
-
   class sLog {
    public:
     sLog(Level level, std::ostream& output, const std::thread::id id = std::this_thread::get_id(),
@@ -87,9 +80,6 @@ class Logger : public Base {
       id_ = id;
     }
 
-    // Currently we dont support function templates from https://en.cppreference.com/w/cpp/io/manip
-    // except for std::endl, but I dont know why
-
     // This captures all data_types
     template <typename T>
     sLog& operator<<(const T& token) {
@@ -97,7 +87,7 @@ class Logger : public Base {
       return *this;
     }
 
-    // This deals with std::endl
+    // This deals with iomanip function templates
     void operator<<(std::ostream& (*func)(std::ostream&)) {
       constexpr auto default_light = std::string_view{"\033[0;39;49m"};
       std::ostringstream context;
@@ -125,32 +115,29 @@ class Logger : public Base {
     Level level_;
   };
 
-  struct sDebug : public sLog {
-    sDebug(const std::thread::id id = std::this_thread::get_id(),
-           const std::source_location file_src = std::source_location::current())
+  struct Debug : public sLog {
+    Debug(const std::thread::id id = std::this_thread::get_id(),
+          const std::source_location file_src = std::source_location::current())
         : sLog(Level::Debug, Adaptor::output_stream(), id, file_src) {}
   };
 
-  struct sInfo : public sLog {
-    sInfo(const std::thread::id id = std::this_thread::get_id(),
-          const std::source_location file_src = std::source_location::current())
+  struct Info : public sLog {
+    Info(const std::thread::id id = std::this_thread::get_id(),
+         const std::source_location file_src = std::source_location::current())
         : sLog(Level::Info, Adaptor::output_stream(), id, file_src) {}
   };
 
-  struct sWarning : public sLog {
-    sWarning(const std::thread::id id = std::this_thread::get_id(),
-             const std::source_location file_src = std::source_location::current())
+  struct Warning : public sLog {
+    Warning(const std::thread::id id = std::this_thread::get_id(),
+            const std::source_location file_src = std::source_location::current())
         : sLog(Level::Warning, Adaptor::output_stream(), id, file_src) {}
   };
 
-  struct sError : public sLog {
-    sError(const std::thread::id id = std::this_thread::get_id(),
-           const std::source_location file_src = std::source_location::current())
+  struct Error : public sLog {
+    Error(const std::thread::id id = std::this_thread::get_id(),
+          const std::source_location file_src = std::source_location::current())
         : sLog(Level::Error, Adaptor::output_stream(), id, file_src) {}
   };
-
-  std::ostream& output_;
-  std::ostringstream os;
 };
 
 }  // namespace logger

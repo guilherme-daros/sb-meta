@@ -16,7 +16,7 @@ class Monitor {
   Monitor(Dr interval) : interval_(interval) {}
   Monitor(Dr interval, Fn func) : interval_(interval), func_(func) {}
 
-  virtual ~Monitor() {
+  ~Monitor() {
     Stop();
     future_.wait();
   };
