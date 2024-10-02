@@ -1,3 +1,5 @@
+#pragma once
+
 #include <filesystem>
 #include <iomanip>
 #include <ios>
@@ -5,9 +7,14 @@
 #include <ostream>
 #include <source_location>
 #include <sstream>
+#include <string>
 #include <string_view>
 #include <thread>
-#include <unordered_map>
+#include <type_traits>
+
+#include "logger/Level.hpp"
+#include "logger/Output.hpp"
+#include "logger/Timing.hpp"
 
 #include "types/StringLiteral.hpp"
 
@@ -21,57 +28,18 @@ inline auto get_pos(const std::string_view path, const uint64_t line) -> std::st
 
   auto path_len = path.length() - offset;
 
-  std::string_view filename{path.substr((offset + 1), path.length())};
+  auto filename = std::string_view{path.substr((offset + 1), path.length())};
   return filename;
-}
-
-inline void Uptime() {
-  static auto start = std::chrono::steady_clock::now();
-  std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 1000));
-  auto now = std::chrono::steady_clock::now();
-  auto uptime_s = std::chrono::duration_cast<std::chrono::seconds>(now - start);
-  auto uptime_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
-  std::cout << "[" << std::setw(5) << std::right << uptime_s.count() << "." << std::setw(3) << std::setfill('0')
-            << (uptime_ms.count() % 1000) << "]" << std::setfill(' ') << std::endl;
 }
 
 }  // namespace utils
 
-namespace output {
-class Console {
- public:
-  static auto output_stream() -> std::ostream& {
-    static auto& pStream = std::cout;
-    return pStream;
-  }
-};
-}  // namespace output
+template <class T, class U>
+concept Derived = std::is_base_of<U, T>::value;
 
-enum class Level { None, Error, Warning, Info, Debug };
-
-class Base {
- public:
- protected:
-  static auto to_string(Level level) -> std::string& {
-    static auto buffer = std::unordered_map<Level, std::string>{
-        {Level::None, "None"}, {Level::Debug, "D"}, {Level::Info, "I"}, {Level::Warning, "W"}, {Level::Error, "E"}};
-    return buffer[(level >= Level::None && level <= Level::Debug) ? level : static_cast<Level>(0)];
-  }
-
-  static auto to_color(Level level) -> std::string& {
-    static auto buffer = std::unordered_map<Level, std::string>{{Level::None, "None"},
-                                                                {Level::Debug, "\033[1;39;44m"},
-                                                                {Level::Info, "\033[1;39;42m"},
-                                                                {Level::Warning, "\033[1;39;43m"},
-                                                                {Level::Error, "\033[1;39;41m"}};
-
-    return buffer[(level >= Level::None && level <= Level::Debug) ? level : static_cast<Level>(0)];
-  }
-
-};  // namespace log
-
-template <typename Adaptor, StringLiteral domain>
-class Logger : public Base {
+template <StringLiteral domain, Derived<output::Base> Output = output::Console,
+          Derived<timing::Base> Timing = timing::Timestamp>
+class Logger {
  public:
   class sLog {
    public:
@@ -100,7 +68,7 @@ class Logger : public Base {
       constexpr auto default_light = std::string_view{"\033[0;39;49m"};
       std::ostringstream context;
 
-      context << "[" << std::setw(6) << " ]";
+      context << "[" << std::setw(timing_.width()) << timing_.get() << "]";
       context << " ";
       context << "[" << id_ << "]";
       context << " ";
@@ -116,41 +84,47 @@ class Logger : public Base {
       os.clear();
     }
 
+   private:
     std::ostringstream os;
     std::ostream& output_;
     std::string_view file_number_;
     std::thread::id id_;
     Level level_;
+    const Timing timing_;
   };
 
   struct Debug : public sLog {
     Debug(const std::thread::id id = std::this_thread::get_id(),
           const std::source_location file_src = std::source_location::current())
-        : sLog(Level::Debug, Adaptor::output_stream(), id, file_src) {}
+        : sLog(Level::Debug, output_.stream(), id, file_src) {}
   };
 
   struct Info : public sLog {
     Info(const std::thread::id id = std::this_thread::get_id(),
          const std::source_location file_src = std::source_location::current())
-        : sLog(Level::Info, Adaptor::output_stream(), id, file_src) {}
+        : sLog(Level::Info, output_.stream(), id, file_src) {}
   };
 
   struct Warning : public sLog {
     Warning(const std::thread::id id = std::this_thread::get_id(),
             const std::source_location file_src = std::source_location::current())
-        : sLog(Level::Warning, Adaptor::output_stream(), id, file_src) {}
+        : sLog(Level::Warning, output_.stream(), id, file_src) {}
   };
 
   struct Error : public sLog {
     Error(const std::thread::id id = std::this_thread::get_id(),
           const std::source_location file_src = std::source_location::current())
-        : sLog(Level::Error, Adaptor::output_stream(), id, file_src) {}
+        : sLog(Level::Error, output_.stream(), id, file_src) {}
   };
 
   static Level logging_level;
+  static Output output_;
 };
 
-template <typename Adaptor, StringLiteral domain>
-Level Logger<Adaptor, domain>::logging_level = Level::Debug;
+template <StringLiteral domain, Derived<output::Base> Output, Derived<timing::Base> Timing>
+Level Logger<domain, Output, Timing>::logging_level = Level::Debug;
+
+template <StringLiteral domain, Derived<output::Base> Output, Derived<timing::Base> Timing>
+Output Logger<domain, Output, Timing>::output_;
 
 }  // namespace logger

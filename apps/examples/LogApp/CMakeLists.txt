@@ -3,3 +3,4 @@ string(REPLACE " " "_" executableName ${executableName})
 
 add_executable(${executableName} "Main.cpp")
 target_link_libraries(${executableName} PUBLIC infra)
+target_link_libraries(${executableName} PUBLIC logger)
