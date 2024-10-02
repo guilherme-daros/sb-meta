@@ -1,28 +1,54 @@
 #include <iostream>
+#include <memory>
 
 #include "notifier/Connection.hpp"
 #include "notifier/Signal.hpp"
+#include "types/Singleton.hpp"
 
-class Observer : public std::enable_shared_from_this<Observer> {
+template <typename... Ts>
+struct Event {
+  using Signal = event::Signal<Ts...>;
+};
+
+using RechargeEvent = Event<int, int, int>;
+
+class Notifier : public types::Singleton<Notifier> {
  public:
-  Observer(notifier::Signal<int>& signal) { connection = signal.connect(shared_from_this(), &Observer::onEvent); }
-
-  void onEvent(int value) { std::cout << "Observer received value: " << value << std::endl; }
+  template <typename... Args>
+  auto NotifyRechargeEvent(Args... args) -> void {
+    recharge_event_.emit(args...);
+  }
+  auto recharge_event() -> RechargeEvent::Signal& { return recharge_event_; }
 
  private:
-  Connection connection;
+  RechargeEvent::Signal recharge_event_;
+};
+
+class Listener : public std::enable_shared_from_this<Listener> {
+ public:
+  auto Init() -> std::shared_ptr<Listener> {
+    auto& signal = Notifier::Instance().recharge_event();
+    connection_ = signal.connect<Listener>(shared_from_this(), &Listener::onEvent);
+    return shared_from_this();
+  }
+
+  void onEvent(int x, int y, int z) { std::cout << "Observer received value: " << x << std::endl; }
+
+ private:
+  event::Connection connection_;
 };
 
 int main() {
-  notifier::Signal<int> signal;
+  auto& n = Notifier::Instance();
 
-  auto observer = std::make_shared<Observer>(signal);
+  auto observer = std::make_shared<Listener>()->Init();
 
-  signal.emit(42);
+  std::cout << observer.use_count() << std::endl;
 
-  observer.reset();
+  auto ob = observer;
 
-  signal.emit(42);
+  std::cout << observer.use_count() << std::endl;
+  n.NotifyRechargeEvent(1, 2, 4);
 
   return 0;
-}
+};
