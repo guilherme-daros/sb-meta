@@ -10,7 +10,6 @@
 #include <string>
 #include <string_view>
 #include <thread>
-#include <type_traits>
 
 #include "logger/Level.hpp"
 #include "logger/Output.hpp"
@@ -34,17 +33,16 @@ inline auto get_pos(const std::string_view path, const uint64_t line) -> std::st
 
 }  // namespace utils
 
-template <class T, class U>
-concept Derived = std::is_base_of<U, T>::value;
-
-template <StringLiteral domain, Derived<output::Base> Output = output::Console,
-          Derived<timing::Base> Timing = timing::Timestamp>
+template <StringLiteral domain, typename... Configs>
 class Logger {
  public:
-  class sLog {
+  using Output = output::Output<Configs...>;
+  using Timing = timing::Timing<Configs...>;
+
+ private:
+  class Log {
    public:
-    sLog(Level level, std::ostream& output, const std::thread::id id = std::this_thread::get_id(),
-         const std::source_location file_src = std::source_location::current())
+    Log(Level level, std::ostream& output, const std::thread::id id, const std::source_location file_src)
         : level_(level), output_(output) {
       file_number_ = utils::get_pos(file_src.file_name(), file_src.line());
       id_ = id;
@@ -52,7 +50,7 @@ class Logger {
 
     // This captures all data_types
     template <typename T>
-    sLog& operator<<(const T& token) {
+    Log& operator<<(const T& token) {
       os << token;
       return *this;
     }
@@ -79,7 +77,7 @@ class Logger {
       context << std::setw(20) << std::left << file_number_;
       context << " ";
 
-      output_ << context.str() << os.str() << std::endl;
+      output_ << context.str() << os.str() << func;
       os.str("");
       os.clear();
     }
@@ -93,38 +91,39 @@ class Logger {
     const Timing timing_;
   };
 
-  struct Debug : public sLog {
+ public:
+  struct Debug : public Log {
     Debug(const std::thread::id id = std::this_thread::get_id(),
           const std::source_location file_src = std::source_location::current())
-        : sLog(Level::Debug, output_.stream(), id, file_src) {}
+        : Log(Level::Debug, output_.stream(), id, file_src) {}
   };
 
-  struct Info : public sLog {
+  struct Info : public Log {
     Info(const std::thread::id id = std::this_thread::get_id(),
          const std::source_location file_src = std::source_location::current())
-        : sLog(Level::Info, output_.stream(), id, file_src) {}
+        : Log(Level::Info, output_.stream(), id, file_src) {}
   };
 
-  struct Warning : public sLog {
+  struct Warning : public Log {
     Warning(const std::thread::id id = std::this_thread::get_id(),
             const std::source_location file_src = std::source_location::current())
-        : sLog(Level::Warning, output_.stream(), id, file_src) {}
+        : Log(Level::Warning, output_.stream(), id, file_src) {}
   };
 
-  struct Error : public sLog {
+  struct Error : public Log {
     Error(const std::thread::id id = std::this_thread::get_id(),
           const std::source_location file_src = std::source_location::current())
-        : sLog(Level::Error, output_.stream(), id, file_src) {}
+        : Log(Level::Error, output_.stream(), id, file_src) {}
   };
 
   static Level logging_level;
   static Output output_;
 };
 
-template <StringLiteral domain, Derived<output::Base> Output, Derived<timing::Base> Timing>
-Level Logger<domain, Output, Timing>::logging_level = Level::Debug;
+template <StringLiteral domain, typename... Configs>
+Level Logger<domain, Configs...>::logging_level = Level::Debug;
 
-template <StringLiteral domain, Derived<output::Base> Output, Derived<timing::Base> Timing>
-Output Logger<domain, Output, Timing>::output_;
+template <StringLiteral domain, typename... Configs>
+output::Output<Configs...> Logger<domain, Configs...>::output_;
 
 }  // namespace logger

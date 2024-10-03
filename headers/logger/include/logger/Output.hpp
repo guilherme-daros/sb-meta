@@ -3,11 +3,23 @@
 #include <iostream>
 #include <ostream>
 
-namespace output {
+#include "logger/Meta.hpp"
+
+namespace logger::output {
+
+class Console;
 
 class Base {
+ public:
+  using Default = Console;
   virtual auto stream() -> std::ostream& = 0;
 };
+
+template <typename T>
+struct is_output : std::is_base_of<output::Base, T> {};
+
+template <typename... Ts>
+using Output = TypeFinder_t<output::Base, output::is_output, Ts...>;
 
 class Console : public Base {
  public:
@@ -16,4 +28,5 @@ class Console : public Base {
     return pStream;
   }
 };
-}  // namespace output
+
+}  // namespace logger::output

@@ -7,13 +7,23 @@
 #include <iostream>
 #include <string_view>
 
+#include "logger/Meta.hpp"
+
 namespace logger::timing {
+
+class Uptime;
 
 class Base {
  public:
+  using Default = Uptime;
   virtual auto get() const -> std::string_view = 0;
   constexpr virtual auto width() const -> uint8_t = 0;
 };
+template <typename T>
+struct is_timing : std::is_base_of<timing::Base, T> {};
+
+template <typename... Ts>
+using Timing = TypeFinder_t<timing::Base, timing::is_timing, Ts...>;
 
 class Uptime : public Base {
  public:
@@ -56,4 +66,5 @@ class Timestamp : public Base {
  private:
   static constexpr uint8_t timestamp_width = 12;
 };
+
 }  // namespace logger::timing
