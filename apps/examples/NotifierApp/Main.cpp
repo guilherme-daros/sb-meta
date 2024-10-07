@@ -1,54 +1,103 @@
+#include <iomanip>
 #include <iostream>
-#include <memory>
+#include "notifier/Listener.hpp"
 
-#include "notifier/Connection.hpp"
-#include "notifier/Signal.hpp"
-#include "types/Singleton.hpp"
-
-template <typename... Ts>
-struct Event {
-  using Signal = event::Signal<Ts...>;
+class RebootListener {
+ public:
+  virtual ~RebootListener() = default;
+  virtual auto OnRebootNotification(bool done) -> void = 0;
+  void operator()(bool done) { OnRebootNotification(done); }
 };
 
-using RechargeEvent = Event<int, int, int>;
-
-class Notifier : public types::Singleton<Notifier> {
+class PowerUpListener {
  public:
-  template <typename... Args>
-  auto NotifyRechargeEvent(Args... args) -> void {
-    recharge_event_.emit(args...);
+  virtual ~PowerUpListener() = default;
+  virtual auto OnPowerUpNotification(bool done) -> void = 0;
+  void operator()(bool done) { OnPowerUpNotification(done); }
+};
+class ConnectListener {
+ public:
+  virtual ~ConnectListener() = default;
+  virtual auto OnConnect(bool done) -> void = 0;
+  void operator()(bool done) { OnConnect(done); }
+};
+class BootListener {
+ public:
+  virtual ~BootListener() = default;
+  virtual auto OnBootNotification(bool done) -> void = 0;
+  void operator()(bool done) { OnBootNotification(done); }
+};
+
+using Not = notifier::Notifier<notifier::Listener<RebootListener>, notifier::Listener<BootListener>,
+                               notifier::Listener<PowerUpListener>, notifier::Listener<ConnectListener>>;
+
+class Manager : public RebootListener, BootListener, PowerUpListener {
+ public:
+  Manager() {
+    auto& n = Not::Instance();
+    n.AddListener<Manager, RebootListener>(this)
+        .AddListener<Manager, BootListener>(this)
+        .AddListener<Manager, PowerUpListener>(this);
   }
-  auto recharge_event() -> RechargeEvent::Signal& { return recharge_event_; }
+
+  ~Manager() {
+    auto& n = Not::Instance();
+    n.RemoveListener<Manager, RebootListener>(this)
+        .RemoveListener<Manager, BootListener>(this)
+        .RemoveListener<Manager, PowerUpListener>(this);
+  }
 
  private:
-  RechargeEvent::Signal recharge_event_;
-};
-
-class Listener : public std::enable_shared_from_this<Listener> {
- public:
-  auto Init() -> std::shared_ptr<Listener> {
-    auto& signal = Notifier::Instance().recharge_event();
-    connection_ = signal.connect<Listener>(shared_from_this(), &Listener::onEvent);
-    return shared_from_this();
+  auto OnRebootNotification(bool done) -> void override {
+    std::cout << std::setw(20) << std::left << "Manager" << ": Reboot Notification" << std::endl;
   }
 
-  void onEvent(int x, int y, int z) { std::cout << "Observer received value: " << x << std::endl; }
-
- private:
-  event::Connection connection_;
+  auto OnBootNotification(bool done) -> void override {
+    std::cout << std::setw(20) << std::left << "Manager" << ": Boot Notification" << std::endl;
+  }
+  auto OnPowerUpNotification(bool done) -> void override {
+    std::cout << std::setw(20) << std::left << "Manager" << ": PowerUp Notification" << std::endl;
+  }
 };
 
-int main() {
-  auto& n = Notifier::Instance();
+class Coordinator : public RebootListener {
+ public:
+  Coordinator() {
+    auto& n = Not::Instance();
+    n.AddListener<decltype(this), RebootListener>(this);
+  }
 
-  auto observer = std::make_shared<Listener>()->Init();
+  ~Coordinator() {
+    auto& n = Not::Instance();
+    n.RemoveListener<decltype(this), RebootListener>(this);
+  }
 
-  std::cout << observer.use_count() << std::endl;
+ private:
+  auto OnRebootNotification(bool done) -> void override {
+    std::cout << std::setw(20) << std::left << "Coordinator" << ": Reboot Notification" << std::endl;
+  }
+};
 
-  auto ob = observer;
+auto main(int argc, char* argv[]) -> int {
+  auto& notifier = Not::Instance();
 
-  std::cout << observer.use_count() << std::endl;
-  n.NotifyRechargeEvent(1, 2, 4);
+  notifier.NotifyT<ConnectListener>(false);
+
+  auto c = Coordinator();
+  notifier.NotifyT<RebootListener>(false);
+  {
+    auto m = Manager();
+    // Received by Manager and Coordinator
+    notifier.NotifyT<RebootListener>(true);
+
+    // Received by Manager only
+    notifier.NotifyT<BootListener>(true);
+  }
+  // Received by Coordinator
+  notifier.NotifyT<RebootListener>(true);
+
+  // Received by none
+  notifier.NotifyT<BootListener>(true);
 
   return 0;
-};
+}

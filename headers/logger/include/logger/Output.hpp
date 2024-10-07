@@ -19,7 +19,7 @@ template <typename T>
 struct is_output : std::is_base_of<output::Base, T> {};
 
 template <typename... Ts>
-using Output = TypeFinder_t<output::Base, output::is_output, Ts...>;
+using Output = meta::TypeFinder_t<output::Base, output::is_output, Ts...>;
 
 class Console : public Base {
  public:
