@@ -7,7 +7,7 @@
 #include <iostream>
 #include <string_view>
 
-#include "logger/Meta.hpp"
+#include "Meta.hpp"
 
 namespace logger::timing {
 

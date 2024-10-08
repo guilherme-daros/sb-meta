@@ -3,7 +3,7 @@
 #include <iostream>
 #include <ostream>
 
-#include "logger/Meta.hpp"
+#include "Meta.hpp"
 
 namespace logger::output {
 

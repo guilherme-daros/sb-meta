@@ -9,11 +9,10 @@
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <thread>
 
-#include "logger/Level.hpp"
-#include "logger/Output.hpp"
-#include "logger/Timing.hpp"
+#include "Level.hpp"
+#include "Output.hpp"
+#include "Timing.hpp"
 
 #include "types/StringLiteral.hpp"
 
@@ -42,10 +41,9 @@ class Logger {
  private:
   class Log {
    public:
-    Log(Level level, std::ostream& output, const std::thread::id id, const std::source_location file_src)
-        : level_(level), output_(output) {
+    Log(Level level, std::ostream& output, const uint32_t id, const std::source_location file_src)
+        : level_(level), output_(output), id_(id) {
       file_number_ = utils::get_pos(file_src.file_name(), file_src.line());
-      id_ = id;
     }
 
     // This captures all data_types
@@ -86,33 +84,29 @@ class Logger {
     std::ostringstream os;
     std::ostream& output_;
     std::string_view file_number_;
-    std::thread::id id_;
+    const uint32_t id_;
     Level level_;
     const Timing timing_;
   };
 
  public:
   struct Debug : public Log {
-    Debug(const std::thread::id id = std::this_thread::get_id(),
-          const std::source_location file_src = std::source_location::current())
+    Debug(const uint32_t id = gettid(), const std::source_location file_src = std::source_location::current())
         : Log(Level::Debug, output_.stream(), id, file_src) {}
   };
 
   struct Info : public Log {
-    Info(const std::thread::id id = std::this_thread::get_id(),
-         const std::source_location file_src = std::source_location::current())
+    Info(const uint32_t id = gettid(), const std::source_location file_src = std::source_location::current())
         : Log(Level::Info, output_.stream(), id, file_src) {}
   };
 
   struct Warning : public Log {
-    Warning(const std::thread::id id = std::this_thread::get_id(),
-            const std::source_location file_src = std::source_location::current())
+    Warning(const uint32_t id = gettid(), const std::source_location file_src = std::source_location::current())
         : Log(Level::Warning, output_.stream(), id, file_src) {}
   };
 
   struct Error : public Log {
-    Error(const std::thread::id id = std::this_thread::get_id(),
-          const std::source_location file_src = std::source_location::current())
+    Error(const uint32_t id = gettid(), const std::source_location file_src = std::source_location::current())
         : Log(Level::Error, output_.stream(), id, file_src) {}
   };
 

@@ -2,7 +2,9 @@
 
 #include <string>
 #include <unordered_map>
+
 namespace logger {
+
 enum class Level { None, Error, Warning, Info, Debug };
 
 inline auto to_string(Level level) -> std::string& {
