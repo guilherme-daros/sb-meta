@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <ios>
 #include <iostream>
+#include <mutex>
 #include <ostream>
 #include <source_location>
 #include <sstream>
@@ -41,8 +42,8 @@ class Logger {
  private:
   class Log {
    public:
-    Log(Level level, std::ostream& output, const uint32_t id, const std::source_location file_src)
-        : level_(level), output_(output), id_(id) {
+    Log(Level level, std::ostream& output, std::mutex& mtx, const uint32_t id, const std::source_location file_src)
+        : level_(level), output_(output), mtx_(mtx), id_(id) {
       file_number_ = utils::get_pos(file_src.file_name(), file_src.line());
     }
 
@@ -61,7 +62,7 @@ class Logger {
         return;
       }
 
-      constexpr auto default_light = std::string_view{"\033[0;39;49m"};
+      constexpr auto default_light = std::string_view{"\033[0;m"};
       std::ostringstream context;
 
       context << "[" << std::setw(timing_.width()) << timing_.get() << "]";
@@ -75,12 +76,17 @@ class Logger {
       context << std::setw(20) << std::left << file_number_;
       context << " ";
 
-      output_ << context.str() << os.str() << func;
+      {
+        std::scoped_lock lock{mtx_};
+        output_ << context.str() << os.str() << func;
+      }
+
       os.str("");
       os.clear();
     }
 
    private:
+    std::mutex& mtx_;
     std::ostringstream os;
     std::ostream& output_;
     std::string_view file_number_;
@@ -92,30 +98,34 @@ class Logger {
  public:
   struct Debug : public Log {
     Debug(const uint32_t id = gettid(), const std::source_location file_src = std::source_location::current())
-        : Log(Level::Debug, output_.stream(), id, file_src) {}
+        : Log(Level::Debug, output_.stream(), mtx_, id, file_src) {}
   };
 
   struct Info : public Log {
     Info(const uint32_t id = gettid(), const std::source_location file_src = std::source_location::current())
-        : Log(Level::Info, output_.stream(), id, file_src) {}
+        : Log(Level::Info, output_.stream(), mtx_, id, file_src) {}
   };
 
   struct Warning : public Log {
     Warning(const uint32_t id = gettid(), const std::source_location file_src = std::source_location::current())
-        : Log(Level::Warning, output_.stream(), id, file_src) {}
+        : Log(Level::Warning, output_.stream(), mtx_, id, file_src) {}
   };
 
   struct Error : public Log {
     Error(const uint32_t id = gettid(), const std::source_location file_src = std::source_location::current())
-        : Log(Level::Error, output_.stream(), id, file_src) {}
+        : Log(Level::Error, output_.stream(), mtx_, id, file_src) {}
   };
 
+  static std::mutex mtx_;
   static Level logging_level;
   static Output output_;
 };
 
 template <StringLiteral domain, typename... Configs>
 Level Logger<domain, Configs...>::logging_level = Level::Debug;
+
+template <StringLiteral domain, typename... Configs>
+std::mutex Logger<domain, Configs...>::mtx_;
 
 template <StringLiteral domain, typename... Configs>
 output::Output<Configs...> Logger<domain, Configs...>::output_;
