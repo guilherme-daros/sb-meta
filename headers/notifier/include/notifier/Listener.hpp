@@ -43,7 +43,7 @@ class Notifier : public types::Singleton<Notifier<Ls...>>, Ls... {
   }
 
   template <typename T>
-  auto NotifyT(auto... args) -> Notifier& {
+  auto Notify(auto... args) -> Notifier& {
     Listener<T>::Notify(args...);
     return *this;
   }

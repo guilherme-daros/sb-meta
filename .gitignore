@@ -1,10 +1,9 @@
 # Build files
-.build
 .cache
+build
 
 # Git stuff
 .git
 
 # Output
-.bin
 output

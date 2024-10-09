@@ -1,6 +1,5 @@
 
 cmake_minimum_required(VERSION 3.10)
-project(protocol)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -12,9 +11,11 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.bin)
 
 add_subdirectory(headers)
-add_subdirectory(apps)
 
-add_subdirectory(src)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  project(protocol)
+  add_subdirectory(examples)
+endif()
 
 if(FRAMEWORK STREQUAL "gtest")
     add_subdirectory(test/)
