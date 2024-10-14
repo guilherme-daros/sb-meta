@@ -9,7 +9,7 @@
 
 #include "Meta.hpp"
 
-namespace logger::timing {
+namespace sb::logger::timing {
 
 class Uptime;
 
@@ -68,4 +68,4 @@ class Timestamp : public Base {
   static constexpr uint8_t timestamp_width = 12;
 };
 
-}  // namespace logger::timing
+}  // namespace sb::logger::timing

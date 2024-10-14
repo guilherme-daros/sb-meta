@@ -1,8 +1,9 @@
 #include <thread>
+
 #include "logger/Logger.hpp"
 
 namespace {
-using Main = logger::Logger<"Main">;
+using Main = sb::logger::Logger<"Main">;
 }
 
 auto runnable(const int id) {

@@ -3,7 +3,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace logger {
+namespace sb::logger {
 
 enum class Level { None, Error, Warning, Info, Debug };
 
@@ -22,4 +22,4 @@ inline auto to_color(Level level) -> std::string& {
 
   return buffer[(level >= Level::None && level <= Level::Debug) ? level : static_cast<Level>(0)];
 }
-}  // namespace logger
+}  // namespace sb::logger

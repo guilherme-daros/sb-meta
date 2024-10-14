@@ -17,7 +17,7 @@
 
 #include "types/StringLiteral.hpp"
 
-namespace logger {
+namespace sb::logger {
 
 namespace utils {
 inline auto get_pos(const std::string_view path, const uint64_t line) -> std::string_view {
@@ -33,7 +33,7 @@ inline auto get_pos(const std::string_view path, const uint64_t line) -> std::st
 
 }  // namespace utils
 
-template <StringLiteral domain, typename... Configs>
+template <types::StringLiteral domain, typename... Configs>
 class Logger {
  public:
   using Output = output::Output<Configs...>;
@@ -121,13 +121,13 @@ class Logger {
   static Output output_;
 };
 
-template <StringLiteral domain, typename... Configs>
+template <types::StringLiteral domain, typename... Configs>
 Level Logger<domain, Configs...>::logging_level = Level::Debug;
 
-template <StringLiteral domain, typename... Configs>
+template <types::StringLiteral domain, typename... Configs>
 std::mutex Logger<domain, Configs...>::mtx_;
 
-template <StringLiteral domain, typename... Configs>
+template <types::StringLiteral domain, typename... Configs>
 output::Output<Configs...> Logger<domain, Configs...>::output_;
 
-}  // namespace logger
+}  // namespace sb::logger

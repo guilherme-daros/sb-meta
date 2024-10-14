@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-namespace logger::meta {
+namespace sb::logger::meta {
 
 template <typename Base, template <typename> typename Concept, typename... Types>
 struct TypeFinder;
@@ -19,4 +19,4 @@ struct TypeFinder<Base, Concept> {
 
 template <typename Base, template <typename> typename Concept, typename... Types>
 using TypeFinder_t = typename TypeFinder<Base, Concept, Types...>::type;
-}  // namespace logger::meta
+}  // namespace sb::logger::meta

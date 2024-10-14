@@ -20,11 +20,11 @@ case "$1" in
     rm -rf $BUILD_DIR output
     ;;
   --gtest)
-    cmake -S . -G "Ninja" -B $BUILD_DIR -DCMAKE_EXPORT_COMPILE_COMMANDS=YES -DFRAMEWORK=gtest 
+    cmake -S . -G "Ninja" -B $BUILD_DIR  -DFRAMEWORK=gtest 
     cmake --build $BUILD_DIR
     ;;
    -e | --examples)
-    cmake -S . -G "Ninja" -B $BUILD_DIR  -DCMAKE_EXPORT_COMPILE_COMMANDS=YES -DBUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Debug
+    cmake -S . -G "Ninja" -B $BUILD_DIR  -DBUILD_EXAMPLES=yes -DCMAKE_BUILD_TYPE=Debug
     cmake --build $BUILD_DIR
     ;;
   -h | --help)
@@ -32,7 +32,7 @@ case "$1" in
     ;;
   *)
     mkdir -p $BUILD_DIR
-    cmake -S . -G "Ninja" -B $BUILD_DIR -DCMAKE_EXPORT_COMPILE_COMMANDS=YES
+    cmake -S . -G "Ninja" -B $BUILD_DIR 
     cmake --build $BUILD_DIR
     ;;
 esac

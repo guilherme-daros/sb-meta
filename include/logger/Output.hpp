@@ -5,7 +5,7 @@
 
 #include "Meta.hpp"
 
-namespace logger::output {
+namespace sb::logger::output {
 
 class Console;
 
@@ -29,4 +29,4 @@ class Console : public Base {
   }
 };
 
-}  // namespace logger::output
+}  // namespace sb::logger::output
