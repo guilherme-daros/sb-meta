@@ -20,12 +20,14 @@ target_include_directories(meta INTERFACE include)
 
 add_library(sb::meta ALIAS meta)
 
-add_subdirectory(external)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  
+  add_subdirectory(external)
 
-if(BUILD_EXAMPLES STREQUAL "yes")
-  if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  if(BUILD_EXAMPLES STREQUAL "yes")
     add_subdirectory(examples)
   endif()
+
 endif()
 
 if(FRAMEWORK STREQUAL "gtest")
