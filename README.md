@@ -1,5 +1,7 @@
-## (Antimony) Logging Library 
+## (Antimony) Metaprogramming Library 
 
-Templated extensible/configurable logging engine
+Collection of metaprogramming utilities
 
-#### Logger
+#### TypeFinder
+
+Given a Base class, find the first type in a parameter pack that fits with Base::Condition, if no type matches it will use Base::Default
